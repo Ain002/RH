@@ -33,4 +33,5 @@ $routes->group('/rh', ['filter' => 'auth:role:rh'], function ($routes) {
 $routes->group('/admin', ['filter' => 'auth:role:admin'], function ($routes) {
     $routes->get('/', 'Home::admin');
     $routes->get('dashboard', 'Home::adminDashboard');
+    $routes->post('add-employe', 'Home::addEmploye');
 });

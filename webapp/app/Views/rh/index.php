@@ -20,15 +20,14 @@
     </div>
     <div class="sidebar-section">Menu</div>
     <ul class="sidebar-nav">
-      <li><a href="#page-dashboard-rh"><i class="bi bi-grid-1x2"></i> Tableau de bord</a></li>
       <li>
-        <a href="#page-liste-rh" class="active">
-          <i class="bi bi-inbox"></i> Demandes à traiter
-          <span class="nav-badge alert">4</span>
+        <a href="#" class="active">
+          Demandes à traiter
+          <?php if (count($attentes) > 0) { ?>
+          <span class="nav-badge alert"><?= count($attentes) ?></span>
+          <?php } ?>
         </a>
       </li>
-      <li><a href="#page-liste-rh"><i class="bi bi-archive"></i> Historique</a></li>
-      <li><a href="#page-liste-rh"><i class="bi bi-people"></i> Soldes employés</a></li>
     </ul>
     <div class="sidebar-user">
       <div class="s-user-row">

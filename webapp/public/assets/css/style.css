@@ -166,8 +166,8 @@ code,pre,.mono{font-family:'DM Mono',monospace}
 .s-en_attente::before{background:var(--warn)}
 .s-approuve{background:var(--success-bg);color:var(--success)}
 .s-approuve::before{background:var(--success)}
-.s-refuse{background:var(--danger-bg);color:var(--danger)}
-.s-refuse::before{background:var(--danger)}
+.s-refusee{background:var(--danger-bg);color:var(--danger)}
+.s-refusee::before{background:var(--danger)}
 .s-annulee{background:#f1efe8;color:#7a8f80}
 .s-annulee::before{background:#b4b2a9}
 
