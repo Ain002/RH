@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Controllers;
+
 use App\Models\CongeModel;
 use App\Models\SoldeModel;
 
@@ -24,14 +26,14 @@ class CongeController extends BaseController
                              ->join('types_conge', 'types_conge.id = conges.type_conge_id')
                              ->join('employes as rh', 'rh.id = conges.traite_par', 'left')
                              ->findAll();
-        
+
         // Enrichir avec les informations de soldes
         $all = [];
         foreach ($conges as $conge) {
             $solde = $soldeModel->where('employe_id', $conge['employe_id'])
                                ->where('type_conge_id', $conge['type_conge_id'])
                                ->first();
-            
+
             if ($solde) {
                 $conge['jours_attribues'] = $solde['jours_attribues'];
                 $conge['jours_pris'] = $solde['jours_pris'];
@@ -43,7 +45,7 @@ class CongeController extends BaseController
             }
             $all[] = $conge;
         }
-        
+
         $soldes = $soldeModel->findAll();
         $attentes = [];
         $approuvees = [];
@@ -72,46 +74,46 @@ class CongeController extends BaseController
     public function approuver()
     {
         $congeId = $this->request->getPost('conge_id');
-        
+
         $congeModel = new CongeModel();
         $soldeModel = new SoldeModel();
-        
+
         $conge = $congeModel->find($congeId);
-        
+
         if (!$conge) {
             return redirect()->back()->with('error', 'Congé non trouvé');
         }
-        
+
         // Vérifier les soldes
         $solde = $soldeModel->where('employe_id', $conge['employe_id'])
                             ->where('type_conge_id', $conge['type_conge_id'])
                             ->first();
-        
+
         if (!$solde) {
             return redirect()->back()->with('error', 'Solde non trouvé pour cet employé');
         }
-        
+
         $joursDisponibles = ($solde['jours_attribues'] - $solde['jours_pris']);
-        
+
         if ($conge['nb_jours'] > $joursDisponibles) {
             return redirect()->back()->with('error', 'Soldes insuffisants');
         }
-        
+
         // Mettre à jour le congé
         $traiteParId = session()->get('user_id') ?? null;
-        
+
         $congeModel->update($congeId, [
             'statut' => 'approuve',
             'traite_par' => $traiteParId,
             'commentaire_rh' => 'approuvé'
         ]);
-        
+
         // Mettre à jour les soldes
         $soldeModel->where('employe_id', $conge['employe_id'])
                    ->where('type_conge_id', $conge['type_conge_id'])
                    ->set(['jours_pris' => $solde['jours_pris'] + $conge['nb_jours']])
                    ->update();
-        
+
         return redirect()->to('/rh')->with('success', 'Demande de congé approuvée. Les soldes ont été mis à jour.');
     }
 
@@ -119,23 +121,56 @@ class CongeController extends BaseController
     {
         $congeId = $this->request->getPost('conge_id');
         $commentaire = $this->request->getPost('commentaire') ?? '';
-        
+
         $congeModel = new CongeModel();
-        
+
         $conge = $congeModel->find($congeId);
-        
+
         if (!$conge) {
             return redirect()->back()->with('error', 'Congé non trouvé');
         }
-        
+
         $traiteParId = session()->get('user_id') ?? null;
-        
+
         $congeModel->update($congeId, [
             'statut' => 'refusee',
             'traite_par' => $traiteParId,
             'commentaire_rh' => $commentaire
         ]);
-        
+
         return redirect()->to('/rh')->with('success', 'Demande de congé refusée.');
+    }
+
+    public function soumettreDemande()
+    {
+        $typeCongeId = $this->request->getPost('type_conge_id');
+        $dateDebut = $this->request->getPost('date_debut');
+        $dateFin = $this->request->getPost('date_fin');
+        $motif = $this->request->getPost('commentaire');
+
+        if (!$typeCongeId || !$dateDebut || !$dateFin) {
+            return redirect()->back()->with('error', 'Veuillez remplir tous les champs obligatoires.');
+        }
+
+        $session = session();
+        $employeId = $session->get('user_id');
+        $nbJours = (strtotime($dateFin) - strtotime($dateDebut)) / (60 * 60 * 24) + 1;
+
+        $demandeData = [
+            'employe_id' => $employeId,
+            'type_conge_id' => $typeCongeId,
+            'date_debut' => $dateDebut,
+            'date_fin' => $dateFin,
+            'nb_jours' => $nbJours,
+            'motif' => $motif,
+            'statut' => 'en_attente',
+        ];
+
+        $congeModel = new CongeModel();
+        if ($congeModel->save($demandeData)) {
+            return redirect()->to('/employe/dashboard')->with('success', 'Demande soumise avec succès.');
+        }
+
+        return redirect()->back()->with('error', 'Une erreur est survenue lors de la soumission de la demande.');
     }
 }

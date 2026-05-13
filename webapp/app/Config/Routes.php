@@ -21,7 +21,9 @@ $routes->get('/unauthorized', 'Home::unauthorized');
 $routes->group('/employe', ['filter' => 'auth:role:employe'], function ($routes) {
     $routes->get('/', 'Home::employe');
     $routes->get('dashboard', 'Home::employeDashboard');
+    $routes->get('list', 'Home::employeList');
     $routes->get('create', 'Home::create');
+    $routes->post('soumettre', 'CongeController::soumettreDemande');
 });
 
 // ─── Responsable RH ──────────────────────────────────────────────────────────
