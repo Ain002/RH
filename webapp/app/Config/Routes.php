@@ -5,13 +5,29 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
 
-$routes->get('/rh', 'Home::rh');
+// ─── Public (non connecté) ────────────────────────────────────────────────────
 
-$routes->get('/employe', 'Home::employe');
-$routes->get('/employe/dashboard', 'Home::employeDashboard');
-$routes->get('/employe/create', 'Home::create');
+$routes->get('/', 'Auth::login');
+$routes->get('/login', 'Auth::login');
+$routes->post('/auth/authenticate', 'Auth::authenticate');
+$routes->get('/auth/logout', 'Auth::logout');
+$routes->get('/unauthorized', 'Home::unauthorized');
 
-$routes->get('/admin', 'Home::admin');
-$routes->get('/admin/dashboard', 'Home::adminDashboard');
+// ─── Employé ─────────────────────────────────────────────────────────────────
+$routes->group('/employe', ['filter' => 'auth:role:employe'], function ($routes) {
+    $routes->get('/', 'Home::employe');
+    $routes->get('dashboard', 'Home::employeDashboard');
+    $routes->get('create', 'Home::create');
+});
+
+// ─── Responsable RH ──────────────────────────────────────────────────────────
+$routes->group('/rh', ['filter' => 'auth:role:rh'], function ($routes) {
+    $routes->get('/', 'Home::rh');
+});
+
+// ─── Admin ────────────────────────────────────────────────────────────────────
+$routes->group('/admin', ['filter' => 'auth:role:admin'], function ($routes) {
+    $routes->get('/', 'Home::admin');
+    $routes->get('dashboard', 'Home::adminDashboard');
+});

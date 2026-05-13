@@ -38,4 +38,9 @@ class Home extends BaseController
     {
         return view('admin/dashboard');
     }
+
+    public function unauthorized(): string
+    {
+        return view('errors/unauthorized');
+    }
 }
