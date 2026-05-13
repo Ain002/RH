@@ -45,20 +45,53 @@
     <p class="auth-title">Connexion</p>
     <p class="auth-sub">Entrez vos identifiants pour accéder à votre espace.</p>
 
-    <!-- Flashdata CI4 — erreur -->
+    <?php if (session()->getFlashdata('error')) : ?>
     <div class="flash flash-error">
       <i class="bi bi-exclamation-circle-fill"></i>
-      Identifiants incorrects. Veuillez réessayer.
+      <?= esc(session()->getFlashdata('error')) ?>
     </div>
+    <?php endif ?>
 
-    <form>
+    <?php if (session()->getFlashdata('success')) : ?>
+    <div class="flash flash-success">
+      <i class="bi bi-check-circle-fill"></i>
+      <?= esc(session()->getFlashdata('success')) ?>
+    </div>
+    <?php endif ?>
+
+    <?php if (session()->getFlashdata('errors')) : ?>
+    <div class="flash flash-error">
+      <i class="bi bi-exclamation-circle-fill"></i>
+      <ul style="margin:0;padding-left:1rem">
+        <?php foreach (session()->getFlashdata('errors') as $err) : ?>
+          <li><?= esc($err) ?></li>
+        <?php endforeach ?>
+      </ul>
+    </div>
+    <?php endif ?>
+
+    <form method="POST" action="<?= base_url('/auth/authenticate') ?>">
+      <?= csrf_field() ?>
       <div class="f-group">
         <label class="f-label">Adresse email</label>
-        <input type="email" class="f-input" placeholder="vous@techmada.mg" value="employe@techmada.mg"/>
+        <input
+          type="email"
+          name="email"
+          class="f-input"
+          placeholder="vous@techmada.mg"
+          value="<?= esc(old('email')) ?>"
+          required
+        />
       </div>
       <div class="f-group">
         <label class="f-label">Mot de passe</label>
-        <input type="password" class="f-input" placeholder="••••••••" value="emp123"/>
+        <input
+          type="password"
+          name="password"
+          class="f-input"
+          placeholder="••••••••"
+          required
+        />
       </div>
       <button type="submit" class="btn-primary" style="margin-top:.5rem">
         Se connecter <i class="bi bi-arrow-right-short"></i>
@@ -69,15 +102,5 @@
 </div>
 </div>
 </section>
-
-<!-- Navigation demo interne -->
-<script>
-document.querySelectorAll('a[href^="#"]').forEach(a=>{
-  a.addEventListener('click',e=>{
-    const t=document.querySelector(a.getAttribute('href'));
-    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}
-  });
-});
-</script>
 </body>
 </html>
