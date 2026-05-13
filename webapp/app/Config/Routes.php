@@ -1,12 +1,15 @@
 <?php
 
 use CodeIgniter\Router\RouteCollection;
+use App\Controllers\CongeController;
 
 /**
  * @var RouteCollection $routes
  */
 
-// ─── Public (non connecté) ────────────────────────────────────────────────────
+$routes->get('/rh', 'CongeController::findAll');
+$routes->post('/rh/approuver', 'CongeController::approuver');
+$routes->post('/rh/refuser', 'CongeController::refuser');
 
 $routes->get('/', 'Auth::login');
 $routes->get('/login', 'Auth::login');
@@ -32,4 +35,5 @@ $routes->group('/rh', ['filter' => 'auth:role:rh'], function ($routes) {
 $routes->group('/admin', ['filter' => 'auth:role:admin'], function ($routes) {
     $routes->get('/', 'Home::admin');
     $routes->get('dashboard', 'Home::adminDashboard');
+    $routes->post('add-employe', 'Home::addEmploye');
 });

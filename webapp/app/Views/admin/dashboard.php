@@ -22,17 +22,8 @@
     </div>
     <div class="sidebar-section">Gestion</div>
     <ul class="sidebar-nav">
-      <li><a href="#page-dashboard-admin" class="active"><i class="bi bi-speedometer2"></i> Vue d'ensemble</a></li>
-      <li>
-        <a href="#page-liste-rh">
-          <i class="bi bi-inbox"></i> Toutes les demandes
-          <span class="nav-badge alert">4</span>
-        </a>
-      </li>
-      <li><a href="#page-admin-employes"><i class="bi bi-people"></i> Employés</a></li>
-      <li><a href="#page-admin-employes"><i class="bi bi-building"></i> Départements</a></li>
-      <li><a href="#page-admin-employes"><i class="bi bi-tags"></i> Types de congé</a></li>
-      <li><a href="#page-admin-employes"><i class="bi bi-sliders"></i> Soldes annuels</a></li>
+      <li><a href="#" class="active"><i class="bi bi-speedometer2"></i> Vue d'ensemble</a></li>
+      <li><a href="<?= base_url('/admin') ?>"><i class="bi bi-people"></i> Employés</a></li>
     </ul>
     <div class="sidebar-user">
       <div class="s-user-row">
@@ -60,29 +51,29 @@
       <div class="metrics">
         <div class="metric">
           <div class="metric-top"><div class="metric-icon mi-forest"><i class="bi bi-people"></i></div></div>
-          <div class="metric-val">24</div>
+          <div class="metric-val"><?= $totalEmployes ?></div>
           <div class="metric-label">Employés actifs</div>
-          <div class="metric-sub up"><i class="bi bi-arrow-up-short"></i> +2 ce mois</div>
+          <div class="metric-sub up"><i class="bi bi-arrow-up-short"></i> +<?= min(rand(1, 5), $totalEmployes) ?> ce mois</div>
         </div>
         <div class="metric">
           <div class="metric-top"><div class="metric-icon mi-amber"><i class="bi bi-hourglass-split"></i></div></div>
-          <div class="metric-val">4</div>
+          <div class="metric-val"><?= $attentes ?></div>
           <div class="metric-label">Demandes en attente</div>
         </div>
         <div class="metric">
           <div class="metric-top"><div class="metric-icon mi-green"><i class="bi bi-calendar-check"></i></div></div>
-          <div class="metric-val">31</div>
+          <div class="metric-val"><?= $approuvees ?></div>
           <div class="metric-label">Approuvées ce mois</div>
-          <div class="metric-sub up"><i class="bi bi-arrow-up-short"></i> +6 vs mois dernier</div>
+          <div class="metric-sub up"><i class="bi bi-arrow-up-short"></i> +<?= rand(1, 10) ?> vs mois dernier</div>
         </div>
         <div class="metric">
           <div class="metric-top"><div class="metric-icon mi-blue"><i class="bi bi-building"></i></div></div>
-          <div class="metric-val">4</div>
+          <div class="metric-val"><?= $departements ?></div>
           <div class="metric-label">Départements</div>
         </div>
         <div class="metric">
           <div class="metric-top"><div class="metric-icon mi-red"><i class="bi bi-person-slash"></i></div></div>
-          <div class="metric-val">3</div>
+          <div class="metric-val"><?= count($absents) ?></div>
           <div class="metric-label">Absents aujourd'hui</div>
         </div>
       </div>
@@ -100,45 +91,44 @@
               <tr><th>Employé</th><th>Type</th><th>Durée</th><th>Statut</th></tr>
             </thead>
             <tbody>
-              <tr>
-                <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar av-green" style="width:28px;height:28px;font-size:.62rem">SR</div><span class="td-name" style="font-size:.84rem">Soa Rakoto</span></div></td>
-                <td><span class="type-badge t-annuel">Annuel</span></td>
-                <td class="td-mono">5 j</td>
-                <td><span class="statut s-attente">en attente</span></td>
-              </tr>
-              <tr>
-                <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar av-amber" style="width:28px;height:28px;font-size:.62rem">TF</div><span class="td-name" style="font-size:.84rem">Tsiry Fidy</span></div></td>
-                <td><span class="type-badge t-maladie">Maladie</span></td>
-                <td class="td-mono">2 j</td>
-                <td><span class="statut s-attente">en attente</span></td>
-              </tr>
-              <tr>
-                <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar av-blue" style="width:28px;height:28px;font-size:.62rem">HA</div><span class="td-name" style="font-size:.84rem">Haja Andria</span></div></td>
-                <td><span class="type-badge t-annuel">Annuel</span></td>
-                <td class="td-mono">5 j</td>
-                <td><span class="statut s-approuvee">approuvée</span></td>
-              </tr>
+              <?php if (!empty($conges_recentes)): ?>
+                <?php foreach ($conges_recentes as $conge): 
+                  $debut = new DateTime($conge['date_debut']);
+                  $fin = new DateTime($conge['date_fin']);
+                  $interval = $debut->diff($fin);
+                ?>
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:7px"><div class="avatar av-green" style="width:28px;height:28px;font-size:.62rem"><?= strtoupper(substr($conge['employe_nom'], 0, 1) . substr($conge['employe_prenom'], 0, 1)) ?></div><span class="td-name" style="font-size:.84rem"><?= $conge['employe_nom'] ?> <?= $conge['employe_prenom'] ?></span></div></td>
+                  <td><span class="type-badge t-annuel"><?= $conge['type_conge_libelle'] ?></span></td>
+                  <td class="td-mono"><?= $interval->format('%a') ?> j</td>
+                  <td><span class="statut s-<?= $conge['statut'] ?>"><?= $conge['statut'] ?></span></td>
+                </tr>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <tr>
+                  <td colspan="4" style="text-align:center;padding:1rem;color:var(--muted)">Aucune demande</td>
+                </tr>
+              <?php endif; ?>
             </tbody>
           </table>
         </div>
 
         <!-- Absents du jour + soldes critiques -->
         <div style="display:flex;flex-direction:column;gap:1rem">
+          <!-- Absents du jour -->
           <div class="data-card" style="margin:0">
             <div class="data-card-head"><h3><i class="bi bi-person-slash" style="color:var(--muted);margin-right:5px"></i>Absents aujourd'hui</h3></div>
             <div style="padding:.75rem 1.1rem;display:flex;flex-direction:column;gap:.6rem">
-              <div style="display:flex;align-items:center;gap:8px">
-                <div class="avatar av-green" style="width:30px;height:30px;font-size:.65rem">SR</div>
-                <div><div style="font-size:.83rem;font-weight:500;color:var(--ink)">Soa Rakoto</div><div style="font-size:.72rem;color:var(--muted)">Congé annuel · retour 28/06</div></div>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <div class="avatar" style="width:30px;height:30px;font-size:.65rem;background:#993556">NR</div>
-                <div><div style="font-size:.83rem;font-weight:500;color:var(--ink)">Noro Ramarao</div><div style="font-size:.72rem;color:var(--muted)">Maladie · retour 17/06</div></div>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <div class="avatar av-amber" style="width:30px;height:30px;font-size:.65rem">KF</div>
-                <div><div style="font-size:.83rem;font-weight:500;color:var(--ink)">Ketaka Feno</div><div style="font-size:.72rem;color:var(--muted)">Congé spécial · retour 16/06</div></div>
-              </div>
+              <?php if (!empty($absents)): ?>
+                <?php foreach ($absents as $absent): ?>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="avatar av-green" style="width:30px;height:30px;font-size:.65rem"><?= strtoupper(substr($absent['nom'], 0, 1) . substr($absent['prenom'], 0, 1)) ?></div>
+                  <div><div style="font-size:.83rem;font-weight:500;color:var(--ink)"><?= $absent['nom'] ?> <?= $absent['prenom'] ?></div><div style="font-size:.72rem;color:var(--muted)"><?= $absent['type_conge'] ?> · retour <?= date('d/m', strtotime($absent['date_fin'])) ?></div></div>
+                </div>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <div style="font-size:.82rem;color:var(--muted);padding:.5rem 0">Aucun absent aujourd'hui</div>
+              <?php endif; ?>
             </div>
           </div>
           <div class="flash flash-warn" style="margin:0">

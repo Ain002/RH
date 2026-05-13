@@ -8,6 +8,9 @@ class EmployeSeeder extends Seeder
 {
     public function run()
     {
+        // Clear existing data to avoid UNIQUE constraint errors
+        $this->db->table('employes')->truncate();
+
         $data = [
             [
                 'nom' => 'Rakoto',

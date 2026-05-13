@@ -162,10 +162,10 @@ code,pre,.mono{font-family:'DM Mono',monospace}
 /* ─── BADGES STATUT ─────────────────────── */
 .statut{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:500;padding:4px 9px;border-radius:12px}
 .statut::before{content:'';width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
-.s-attente{background:var(--warn-bg);color:var(--warn)}
-.s-attente::before{background:var(--warn)}
-.s-approuvee{background:var(--success-bg);color:var(--success)}
-.s-approuvee::before{background:var(--success)}
+.s-en_attente{background:var(--warn-bg);color:var(--warn)}
+.s-en_attente::before{background:var(--warn)}
+.s-approuve{background:var(--success-bg);color:var(--success)}
+.s-approuve::before{background:var(--success)}
 .s-refusee{background:var(--danger-bg);color:var(--danger)}
 .s-refusee::before{background:var(--danger)}
 .s-annulee{background:#f1efe8;color:#7a8f80}
@@ -232,3 +232,30 @@ code,pre,.mono{font-family:'DM Mono',monospace}
 /* ─── FOOTER ────────────────────────────── */
 .footer-app{padding:.75rem 1.75rem;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted);background:var(--white);display:flex;align-items:center;gap:6px}
 .footer-app span{color:var(--forest);font-weight:500}
+
+.empty {
+  background-color: lightgray;
+  color: gray;
+}
+
+.selection {
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:.8rem;
+  font-weight:500;
+  border:1.5px solid var(--forest);
+  background:var(--forest);
+  color:var(--white);
+  cursor:pointer
+}
+
+.option {
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:.8rem;
+  font-weight:500;
+  border:1.5px solid var(--border);
+  background:var(--white);
+  color:var(--muted);
+  cursor:pointer
+}
