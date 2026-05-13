@@ -205,7 +205,7 @@ class Home extends BaseController
         $soldeModel = new SoldeModel();
         $typeCongeModel = new TypeCongeModel();
 
-        $règles = [
+        $regles = [
             'prenom' => 'required|string|min_length[2]',
             'nom' => 'required|string|min_length[2]',
             'email' => 'required|valid_email|is_unique[employes.email]',
@@ -215,7 +215,7 @@ class Home extends BaseController
             'date_embauche' => 'required|valid_date[Y-m-d]',
         ];
 
-        if (!$this->validate($règles)) {
+        if (!$this->validate($regles)) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Erreur de validation',

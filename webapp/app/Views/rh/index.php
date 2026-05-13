@@ -88,7 +88,7 @@
           }
           if (empty($data)) { 
         ?>
-        <div class="empty"><p>Aucune demane trouvée</p></div>
+        <div class="empty"><p>Aucune demande trouvée</p></div>
         <?php } else { ?>
         <table class="tbl">
           <thead>
@@ -114,7 +114,7 @@
 
                   $interval = $debut->diff($fin);
 
-                  echo $interval->format('%a j');
+                  echo ($interval->format('%a') + 1) . ' j';
                   ?>
               </td>
               <td>
