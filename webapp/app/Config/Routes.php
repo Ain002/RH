@@ -1,12 +1,15 @@
 <?php
 
 use CodeIgniter\Router\RouteCollection;
+use App\Controllers\CongeController;
 
 /**
  * @var RouteCollection $routes
  */
 
-// ─── Public (non connecté) ────────────────────────────────────────────────────
+$routes->get('/rh', 'CongeController::findAll');
+$routes->post('/rh/approuver', 'CongeController::approuver');
+$routes->post('/rh/refuser', 'CongeController::refuser');
 
 $routes->get('/', 'Auth::login');
 $routes->get('/login', 'Auth::login');

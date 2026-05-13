@@ -55,17 +55,17 @@
     <div class="content">
 
       <!-- Flash -->
-      <div class="flash flash-success">
+      <div class="flash flash-success" id="flash-message" style="display:none;">
         <i class="bi bi-check-circle-fill"></i>
-        Demande de Soa Rakoto approuvée. Son solde a été mis à jour automatiquement.
+        <span id="flash-text"></span>
       </div>
 
       <!-- Filtre -->
       <div style="display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap">
-        <button style="padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:500;border:1.5px solid var(--forest);background:var(--forest);color:var(--white);cursor:pointer">Tous (8)</button>
-        <button style="padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:500;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer">En attente (4)</button>
-        <button style="padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:500;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer">Approuvées (3)</button>
-        <button style="padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:500;border:1.5px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer">Refusées (1)</button>
+        <a href="<?= base_url('rh?option=0') ?>"><button class="<?php if ($option == 0) echo 'selection'; else echo 'option' ?>">Tous (<?= count($all) ?>)</button></a>
+        <a href="<?= base_url('rh?option=1') ?>"><button class="<?php if ($option == 1) echo 'selection'; else echo 'option' ?>">En attente (<?= count($attentes) ?>)</button></a>
+        <a href="<?= base_url('rh?option=2') ?>"><button class="<?php if ($option == 2) echo 'selection'; else echo 'option' ?>">Approuvées (<?= count($approuvees) ?>)</button></a>
+        <a href="<?= base_url('rh?option=3') ?>"><button class="<?php if ($option == 3) echo 'selection'; else echo 'option' ?>">Refusées (<?= count($refusees) ?>)</button></a>
         <select class="f-select" style="font-size:.8rem;padding:6px 10px;width:auto;margin-left:auto">
           <option>Tous les départements</option>
           <option>IT</option>
@@ -76,122 +76,117 @@
 
       <div class="data-card">
         <div class="data-card-head"><h3>Toutes les demandes</h3></div>
+        <?php 
+          $data = [];
+          if ($option == 0) {
+            $data = $all;
+          } else if ($option == 1) {
+            $data = $attentes;
+          } else if ($option == 2) {
+            $data = $approuvees;
+          } else {
+            $data = $refusees;
+          }
+          if (empty($data)) { 
+        ?>
+        <div class="empty"><p>Aucune demane trouvée</p></div>
+        <?php } else { ?>
         <table class="tbl">
           <thead>
             <tr><th>Employé</th><th>Type</th><th>Période</th><th>Durée</th><th>Solde dispo</th><th>Statut</th><th>Actions</th></tr>
           </thead>
           <tbody>
-            <!-- En attente — actions disponibles -->
+            <?php foreach ($data as $dat) { ?>
             <tr>
               <td>
                 <div class="profile-row">
-                  <div class="avatar av-green" style="width:32px;height:32px;font-size:.7rem">SR</div>
+                  <div class="avatar av-green" style="width:32px;height:32px;font-size:.7rem"><?= $dat['employe_id'] ?></div>
                   <div class="profile-info">
-                    <div class="pname">Soa Rakoto</div>
-                    <div class="pdept">IT · 23 juin → 27 juin</div>
+                    <div class="pname"><?= $dat['employe_nom'] ?> <?= $dat['employe_prenom'] ?></div>
                   </div>
                 </div>
               </td>
-              <td><span class="type-badge t-annuel">Annuel</span></td>
-              <td class="td-muted" style="font-size:.8rem">23/06 – 27/06/2025</td>
-              <td class="td-mono">5 j</td>
+              <td><span class="type-badge t-annuel"><?= $dat['type_conge_libelle'] ?></span></td>
+              <td class="td-muted" style="font-size:.8rem"><?= $dat['date_debut'] ?> – <?= $dat['date_fin'] ?></td>
+              <td class="td-mono">
+                <?php
+                  $debut = new DateTime($dat['date_debut']);
+                  $fin = new DateTime($dat['date_fin']);
+
+                  $interval = $debut->diff($fin);
+
+                  echo $interval->format('%a j');
+                  ?>
+              </td>
               <td>
-                <span style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--success);font-weight:500">18 j</span>
+                <span style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--success);font-weight:500">
+                  <?= isset($dat['jours_attribues']) && isset($dat['jours_pris']) ? ($dat['jours_attribues'] - $dat['jours_pris']) : 0 ?> j
+                </span>
                 <span style="font-size:.72rem;color:var(--muted)"> dispo</span>
               </td>
-              <td><span class="statut s-attente">en attente</span></td>
+              <td><span class="statut s-<?= $dat['statut'] ?>"><?= $dat['statut'] ?></span></td>
               <td>
+                <?php 
+                  $joursAttribues = isset($dat['jours_attribues']) ? $dat['jours_attribues'] : 0;
+                  $joursPris = isset($dat['jours_pris']) ? $dat['jours_pris'] : 0;
+                  $joursDisponibles = $joursAttribues - $joursPris;
+                  $soldesInsuffisants = $dat['nb_jours'] > $joursDisponibles;
+                  
+                  if ($dat['statut'] == 'en_attente') { 
+                    if ($soldesInsuffisants) {
+                ?>
+                <div style="font-size:.8rem;color:var(--danger);font-weight:500">
+                  <i class="bi bi-exclamation-triangle"></i> Soldes insuffisants
+                </div>
+                <?php } else { ?>
                 <div class="action-btns">
-                  <button class="btn-sm btn-approve"><i class="bi bi-check-lg"></i> Approuver</button>
-                  <button class="btn-sm btn-refuse"><i class="bi bi-x-lg"></i> Refuser</button>
+                  <button class="btn-sm btn-approve" onclick="openConfirmModal(this, 'approve')" data-conge-id="<?= $dat['id'] ?>" data-employe-nom="<?= htmlspecialchars($dat['employe_nom'] . ' ' . $dat['employe_prenom']) ?>" data-nb-jours="<?= $dat['nb_jours'] ?>" data-type-conge="<?= htmlspecialchars($dat['type_conge_libelle']) ?>" data-date-debut="<?= $dat['date_debut'] ?>" data-date-fin="<?= $dat['date_fin'] ?>"><i class="bi bi-check-lg"></i> Approuver</button>
+                  <button class="btn-sm btn-refuse" onclick="openConfirmModal(this, 'refuse')" data-conge-id="<?= $dat['id'] ?>" data-employe-nom="<?= htmlspecialchars($dat['employe_nom'] . ' ' . $dat['employe_prenom']) ?>" data-nb-jours="<?= $dat['nb_jours'] ?>" data-type-conge="<?= htmlspecialchars($dat['type_conge_libelle']) ?>" data-date-debut="<?= $dat['date_debut'] ?>" data-date-fin="<?= $dat['date_fin'] ?>" data-jours-dispo="<?= $joursDisponibles ?>"><i class="bi bi-x-lg"></i> Refuser</button>
                 </div>
+                <?php }
+                  } ?>
               </td>
             </tr>
-            <tr>
-              <td>
-                <div class="profile-row">
-                  <div class="avatar av-amber" style="width:32px;height:32px;font-size:.7rem">TF</div>
-                  <div class="profile-info">
-                    <div class="pname">Tsiry Fidy</div>
-                    <div class="pdept">Finance</div>
-                  </div>
-                </div>
-              </td>
-              <td><span class="type-badge t-maladie">Maladie</span></td>
-              <td class="td-muted" style="font-size:.8rem">18/06 – 19/06/2025</td>
-              <td class="td-mono">2 j</td>
-              <td>
-                <span style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--warn);font-weight:500">1 j</span>
-                <span style="font-size:.72rem;color:var(--danger)"> ⚠ insuffisant</span>
-              </td>
-              <td><span class="statut s-attente">en attente</span></td>
-              <td>
-                <div class="action-btns">
-                  <button class="btn-sm btn-approve" disabled style="opacity:.4;cursor:not-allowed"><i class="bi bi-check-lg"></i> Approuver</button>
-                  <button class="btn-sm btn-refuse"><i class="bi bi-x-lg"></i> Refuser</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <div class="profile-row">
-                  <div class="avatar av-blue" style="width:32px;height:32px;font-size:.7rem">HA</div>
-                  <div class="profile-info">
-                    <div class="pname">Haja Andria</div>
-                    <div class="pdept">Marketing</div>
-                  </div>
-                </div>
-              </td>
-              <td><span class="type-badge t-annuel">Annuel</span></td>
-              <td class="td-muted" style="font-size:.8rem">30/06 – 04/07/2025</td>
-              <td class="td-mono">5 j</td>
-              <td>
-                <span style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--success);font-weight:500">22 j</span>
-                <span style="font-size:.72rem;color:var(--muted)"> dispo</span>
-              </td>
-              <td><span class="statut s-attente">en attente</span></td>
-              <td>
-                <div class="action-btns">
-                  <button class="btn-sm btn-approve"><i class="bi bi-check-lg"></i> Approuver</button>
-                  <button class="btn-sm btn-refuse"><i class="bi bi-x-lg"></i> Refuser</button>
-                </div>
-              </td>
-            </tr>
-            <!-- Déjà traitées -->
-            <tr>
-              <td>
-                <div class="profile-row">
-                  <div class="avatar av-green" style="width:32px;height:32px;font-size:.7rem">SR</div>
-                  <div class="profile-info"><div class="pname">Soa Rakoto</div><div class="pdept">IT</div></div>
-                </div>
-              </td>
-              <td><span class="type-badge t-maladie">Maladie</span></td>
-              <td class="td-muted" style="font-size:.8rem">02/06 – 03/06/2025</td>
-              <td class="td-mono">2 j</td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--muted)">—</span></td>
-              <td><span class="statut s-approuvee">approuvée</span></td>
-              <td><span class="td-muted" style="font-size:.75rem">Traité par Marie R.</span></td>
-            </tr>
+            <?php } ?>
           </tbody>
         </table>
+        <?php } ?>
       </div>
 
-      <!-- Modal refus (inline, visible ici pour le template) -->
-      <div style="margin-top:1.5rem">
-        <div class="form-section" style="border-color:var(--danger-br);background:var(--danger-bg)">
-          <h3 style="color:var(--danger)"><i class="bi bi-x-circle"></i> Confirmer le refus — Tsiry Fidy</h3>
+      <!-- Modal refus (dynamique, caché par défaut) -->
+      <div id="confirm-modal" style="display:none;margin-top:1.5rem">
+        <div class="form-section" id="refuse-section" style="border-color:var(--danger-br);background:var(--danger-bg);display:none">
+          <h3 style="color:var(--danger)"><i class="bi bi-x-circle"></i> Confirmer le refus — <span id="modal-employe-nom"></span></h3>
           <div style="font-size:.875rem;color:var(--ink);margin-bottom:1rem">
-            Demande de <strong>2 jours</strong> du 18 au 19 juin 2025 · Type : Maladie<br>
-            <span style="font-size:.8rem;color:var(--danger)"><i class="bi bi-exclamation-triangle"></i> Solde insuffisant : 1 jour disponible, 2 demandés.</span>
+            Demande de <strong><span id="modal-nb-jours"></span> jours</strong> du <span id="modal-date-debut"></span> au <span id="modal-date-fin"></span> · Type : <span id="modal-type-conge"></span><br>
+            <span id="solde-warning" style="font-size:.8rem;color:var(--danger);display:none"><i class="bi bi-exclamation-triangle"></i> Solde insuffisant : <span id="modal-jours-dispo"></span> jour disponible, <span id="modal-nb-jours2"></span> demandés.</span>
           </div>
-          <div class="f-group">
-            <label class="f-label">Commentaire pour l'employé (optionnel)</label>
-            <textarea class="f-textarea" placeholder="Ex : Solde insuffisant, veuillez contacter les RH pour un congé sans solde.">Solde insuffisant. Solde maladie restant : 1 jour.</textarea>
+          <form method="POST" action="<?= base_url('/rh/refuser') ?>">
+            <input type="hidden" name="conge_id" id="modal-conge-id">
+            <div class="f-group">
+              <label class="f-label">Commentaire pour l'employé (optionnel)</label>
+              <textarea class="f-textarea" name="commentaire" placeholder="Ex : Solde insuffisant, veuillez contacter les RH pour un congé sans solde."></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-sm btn-refuse" style="padding:9px 16px;font-size:.875rem"><i class="bi bi-x-lg"></i> Confirmer le refus</button>
+              <button type="button" class="btn-secondary" onclick="closeConfirmModal()"><i class="bi bi-arrow-left"></i> Annuler</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="form-section" id="approve-section" style="border-color:var(--success-br);background:var(--success-bg);display:none">
+          <h3 style="color:var(--success)"><i class="bi bi-check-circle"></i> Confirmer l'approbation — <span id="modal-employe-nom2"></span></h3>
+          <div style="font-size:.875rem;color:var(--ink);margin-bottom:1rem">
+            Demande de <strong><span id="modal-nb-jours3"></span> jours</strong> du <span id="modal-date-debut2"></span> au <span id="modal-date-fin2"></span> · Type : <span id="modal-type-conge2"></span><br>
+            <span style="font-size:.8rem;color:var(--success)"><i class="bi bi-info-circle"></i> Les jours seront déduits du solde de l'employé.</span>
           </div>
-          <div class="form-actions">
-            <button class="btn-sm btn-refuse" style="padding:9px 16px;font-size:.875rem"><i class="bi bi-x-lg"></i> Confirmer le refus</button>
-            <button class="btn-secondary"><i class="bi bi-arrow-left"></i> Annuler</button>
-          </div>
+          <form method="POST" action="<?= base_url('/rh/approuver') ?>">
+            <input type="hidden" name="conge_id" id="modal-conge-id2">
+            <div class="form-actions">
+              <button type="submit" class="btn-sm btn-approve" style="padding:9px 16px;font-size:.875rem"><i class="bi bi-check-lg"></i> Confirmer l'approbation</button>
+              <button type="button" class="btn-secondary" onclick="closeConfirmModal()"><i class="bi bi-arrow-left"></i> Annuler</button>
+            </div>
+          </form>
         </div>
       </div>
 
@@ -210,6 +205,66 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
     if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}
   });
 });
+
+// Gestion des modales de confirmation
+function openConfirmModal(button, action) {
+  const modal = document.getElementById('confirm-modal');
+  const congeId = button.getAttribute('data-conge-id');
+  const employeNom = button.getAttribute('data-employe-nom');
+  const nbJours = button.getAttribute('data-nb-jours');
+  const typeConge = button.getAttribute('data-type-conge');
+  const dateDebut = button.getAttribute('data-date-debut');
+  const dateFin = button.getAttribute('data-date-fin');
+  const joursDispo = button.getAttribute('data-jours-dispo');
+
+  if (action === 'refuse') {
+    // Remplir les champs pour la modale de refus
+    document.getElementById('refuse-section').style.display = 'block';
+    document.getElementById('approve-section').style.display = 'none';
+    document.getElementById('modal-employe-nom').innerText = employeNom;
+    document.getElementById('modal-nb-jours').innerText = nbJours;
+    document.getElementById('modal-date-debut').innerText = dateDebut;
+    document.getElementById('modal-date-fin').innerText = dateFin;
+    document.getElementById('modal-type-conge').innerText = typeConge;
+    document.getElementById('modal-conge-id').value = congeId;
+    document.getElementById('modal-nb-jours2').innerText = nbJours;
+    document.getElementById('modal-jours-dispo').innerText = joursDispo;
+  } else if (action === 'approve') {
+    // Remplir les champs pour la modale d'approbation
+    document.getElementById('approve-section').style.display = 'block';
+    document.getElementById('refuse-section').style.display = 'none';
+    document.getElementById('modal-employe-nom2').innerText = employeNom;
+    document.getElementById('modal-nb-jours3').innerText = nbJours;
+    document.getElementById('modal-date-debut2').innerText = dateDebut;
+    document.getElementById('modal-date-fin2').innerText = dateFin;
+    document.getElementById('modal-type-conge2').innerText = typeConge;
+    document.getElementById('modal-conge-id2').value = congeId;
+  }
+
+  modal.style.display = 'block';
+  modal.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function closeConfirmModal() {
+  const modal = document.getElementById('confirm-modal');
+  modal.style.display = 'none';
+}
+
+// Afficher le message flash s'il existe
+<?php if (session()->has('success')): ?>
+  const flashMessage = document.getElementById('flash-message');
+  const flashText = document.getElementById('flash-text');
+  flashText.innerText = '<?= session()->getFlashdata("success") ?>';
+  flashMessage.style.display = 'flex';
+  setTimeout(() => {
+    flashMessage.style.display = 'none';
+  }, 5000);
+<?php endif; ?>
+
+<?php if (session()->has('error')): ?>
+  // Afficher message d'erreur
+  alert('<?= session()->getFlashdata("error") ?>');
+<?php endif; ?>
 </script>
 </body>
 </html>
